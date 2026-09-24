@@ -13,6 +13,7 @@ import {
 import { uploadCsv } from "../middlewares/upload.js";
 import { csvImportRateLimiter } from "../middlewares/rateLimiter.js";
 
+
 const router = express.Router({ mergeParams: true });
 
 router.get("/analytics", getAnalytics);
@@ -34,5 +35,5 @@ router.get(
   "/coupons/import/:id",
   getImportJobById
 );
-
+    
 export default router;
