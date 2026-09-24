@@ -130,3 +130,5 @@ dist
 .pnp.*
 # macOS
 .DS_Store
+# CSV import uploads
+uploads/
