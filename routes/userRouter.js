@@ -94,11 +94,11 @@ router
     getUserById
   )
   .put(
-    verifyToken("access"),
-    requireRole("admin"),
-    validateRequest(updateUserSchema),
-    updateUser
-  )
+  verifyToken("access"),
+  requireRole("admin"),
+  validateRequest(updateUserSchema),
+  updateUser
+)
   .delete(
     verifyToken("access"),
     requireRole("admin"),

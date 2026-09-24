@@ -89,7 +89,7 @@ describe("app integration", () => {
       products: [],
       pagination: { totalCount: 0, page: 1, limit: 50 },
     });
-    const token = jwt.sign({ id: "admin1" }, process.env.JWT_ACCESS_SECRET, {
+    const token = jwt.sign({ id: "admin1",role: "admin", }, process.env.JWT_ACCESS_SECRET, {
       expiresIn: "1h",
     });
 
