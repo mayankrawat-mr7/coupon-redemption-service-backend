@@ -9,9 +9,6 @@ import {
   deleteCoupon,
 } from "../controllers/couponController.js";
 
-// import { verifyToken } from "../middlewares/verifyToken.js";
-import {requireRole}from "../middlewares/requireRole.js";
-
 import { validateRequest } from "../middlewares/validations.js";
 
 import {
@@ -21,23 +18,23 @@ import {
 
 const router = express.Router();
 
-// All coupon routes are admin-only
-// router.use(verifyToken("access"));
-router.use(requireRole("admin"));
-
-// Coupon CRUD
 router
   .route("/")
   .get(getAllCoupons)
-  .post(validateRequest(createCouponSchema), createCoupon);
+  .post(
+    validateRequest(createCouponSchema),
+    createCoupon
+  );
 
 router
   .route("/:id")
   .get(getCouponById)
-  .put(validateRequest(updateCouponSchema), updateCoupon)
+  .put(
+    validateRequest(updateCouponSchema),
+    updateCoupon
+  )
   .delete(deleteCoupon);
 
-// Pause coupon
 router.patch("/:id/pause", pauseCoupon);
 
 export default router;
