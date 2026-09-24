@@ -1,6 +1,9 @@
 import express from "express";
 
+import { authRateLimiter } from "../middlewares/rateLimiter.js";
 import { requireRole } from "../middlewares/requireRole.js";
+import { verifyToken } from "../middlewares/auth.js";
+import { validateRequest } from "../middlewares/validations.js";
 
 import {
   getAllUsers,
@@ -18,11 +21,8 @@ import {
   getMyRedemptions,
 } from "../controllers/redemptionController.js";
 
-import { verifyToken } from "../middlewares/auth.js";
-
-import { validateRequest } from "../middlewares/validations.js";
-
 import {
+  loginSchema,
   createUserSchema,
   updateUserSchema,
 } from "../utils/validationSchemas/userSchema.js";
@@ -33,13 +33,29 @@ import {
 
 const router = express.Router();
 
-router.route("/login").post(loginUser);
+// Login
+router.post(
+  "/login",
+  authRateLimiter,
+  validateRequest(loginSchema),
+  loginUser
+);
 
+// Refresh access token
 router
   .route("/update-refresh-access")
-  .put(verifyToken("refresh"), refreshUserAccessToken);
+  .put(
+    verifyToken("refresh"),
+    refreshUserAccessToken
+  );
 
-router.route("/logout").delete(verifyToken("access"), logoutUser);
+// Logout
+router
+  .route("/logout")
+  .delete(
+    verifyToken("access"),
+    logoutUser
+  );
 
 // Admin user routes
 router
