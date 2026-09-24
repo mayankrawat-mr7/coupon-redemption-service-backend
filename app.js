@@ -7,12 +7,13 @@ import indexRouter from "./routes/indexRouter.js";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import AppError from "./middlewares/appError.js";
 import { corsOptions } from "./config/cors.js";
+import { correlationId } from "./middlewares/correlationId.js";
 
 // app.js contains ONLY Express wiring so it can be imported by tests (supertest)
 // without opening a DB connection, starting cron jobs, or binding a port.
 // Those side effects live in server.js.
 const app = express();
-
+app.use(correlationId);
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
