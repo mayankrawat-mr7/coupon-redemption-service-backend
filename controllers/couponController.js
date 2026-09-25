@@ -1,5 +1,6 @@
 import { catchAsync } from "../utils/helpers.js";
 import AppSuccess from "../middlewares/appSuccess.js";
+import { logSuccess } from "../utils/logger.js";
 
 import {
   createCoupon as createCouponService,
@@ -13,6 +14,9 @@ import {
 // Create coupon
 export const createCoupon = catchAsync(async (req, res) => {
   const coupon = await createCouponService(req.body);
+  logSuccess(req, "Coupon created", {
+    couponId: coupon.id || coupon._id?.toString(),
+  });
 
   return new AppSuccess(res, {
     statusCode: 201,
@@ -48,6 +52,7 @@ export const updateCoupon = catchAsync(async (req, res) => {
   const { id } = req.params;
 
   const coupon = await updateCouponService(id, req.body);
+  logSuccess(req, "Coupon updated", { couponId: id });
 
   return new AppSuccess(res, {
     message: "Coupon updated successfully",
@@ -60,6 +65,7 @@ export const pauseCoupon = catchAsync(async (req, res) => {
   const { id } = req.params;
 
   const coupon = await pauseCouponService(id);
+  logSuccess(req, "Coupon paused", { couponId: id });
 
   return new AppSuccess(res, {
     message: "Coupon paused successfully",
@@ -72,6 +78,7 @@ export const deleteCoupon = catchAsync(async (req, res) => {
   const { id } = req.params;
 
   const deleted = await deleteCouponService(id);
+  logSuccess(req, "Coupon deleted", { couponId: id });
 
   return new AppSuccess(res, {
     message: "Coupon deleted successfully",

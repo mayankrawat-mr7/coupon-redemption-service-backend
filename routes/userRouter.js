@@ -1,6 +1,9 @@
 import express from "express";
 
-import { authRateLimiter } from "../middlewares/rateLimiter.js";
+import {
+  authRateLimiter,
+  redemptionRateLimiter,
+} from "../middlewares/rateLimiter.js";
 import { requireRole } from "../middlewares/requireRole.js";
 import { verifyToken } from "../middlewares/auth.js";
 import { validateRequest } from "../middlewares/validations.js";
@@ -77,6 +80,7 @@ router
   .route("/redemptions")
   .post(
     verifyToken("access"),
+    redemptionRateLimiter,
     validateRequest(redeemCouponSchema),
     redeemCoupon
   )

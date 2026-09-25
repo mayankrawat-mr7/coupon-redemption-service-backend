@@ -1,5 +1,6 @@
 import { catchAsync } from "../utils/helpers.js";
 import AppSuccess from "../middlewares/appSuccess.js";
+import { logSuccess } from "../utils/logger.js";
 
 import {
   redeemCoupon as redeemCouponService,
@@ -17,6 +18,12 @@ export const redeemCoupon = catchAsync(async (req, res) => {
     code,
     orderId
   );
+  logSuccess(req, "Coupon redeemed", {
+    userId,
+    couponId: result.coupon.id || result.coupon._id?.toString(),
+    redemptionId:
+      result.redemption.id || result.redemption._id?.toString(),
+  });
 
   return new AppSuccess(res, {
     statusCode: 201,
@@ -40,6 +47,10 @@ export const revertRedemption = catchAsync(async (req, res) => {
   const { id } = req.params;
 
   const result = await revertRedemptionService(id);
+  logSuccess(req, "Redemption reverted", {
+    actorId: req.user.id,
+    redemptionId: id,
+  });
 
   return new AppSuccess(res, {
     message: "Redemption reverted successfully",

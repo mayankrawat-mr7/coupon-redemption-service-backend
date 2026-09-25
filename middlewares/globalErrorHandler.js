@@ -1,7 +1,7 @@
 import AppError from "./appError.js";
 import Logger from "../utils/logger.js";
 
-const sendError = (error, res) => {
+const sendError = (error, req, res) => {
   if (!(error instanceof AppError)) {
     console.log(error);
   }
@@ -10,7 +10,19 @@ const sendError = (error, res) => {
   let status = error.status || "error";
   let responseCode = error.responseCode !== undefined ? error.responseCode : 1;
 
-  if (error.name === "ValidationError" && error.details) {
+  if (["TokenExpiredError", "JsonWebTokenError", "NotBeforeError"].includes(error.name)) {
+    errors = [
+      {
+        field: "token",
+        message:
+          error.name === "TokenExpiredError"
+            ? "Access token has expired"
+            : "Access token is invalid",
+      },
+    ];
+    statusCode = 401;
+    status = "fail";
+  } else if (error.name === "ValidationError" && error.details) {
     errors = error.details.map((err) => ({
       field: err.path.join("."),
       message: err.message.replace(/"([^"]+)"/g, '$1'),
@@ -35,7 +47,7 @@ const sendError = (error, res) => {
     ];
     statusCode = 400;
     status = "fail";
-  } else if (error.errors && Array.isArray(error.errors)) {
+  } else if (error.errors && Array.isArray(error.errors) && error.errors.length) {
     errors = error.errors;
   } else {
     errors = [
@@ -51,6 +63,7 @@ const sendError = (error, res) => {
   Logger.log(statusCode >= 500 ? "error" : "warn", error.message, {
     statusCode: `${statusCode}`,
     name: error.name || "Error",
+    ...(req.requestId ? { requestId: req.requestId } : {}),
   });
 
   res.status(statusCode).json({
@@ -72,5 +85,5 @@ export default (error, req, res, next) => {
   error.message =
     error.message || "Something went wrong, Internal Server Error";
   error.field = error.field || null;
-  sendError(error, res);
+  sendError(error, req, res);
 };

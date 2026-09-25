@@ -15,8 +15,14 @@ import {
 import { userRefreshTokenPath } from "../config/constants.js";
 
 export const loginUserService = async (identifier, password, res) => {
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-  const isPhone = /^\d{10}$/.test(identifier);
+console.log("identifier:", JSON.stringify(identifier));
+console.log("type:", typeof identifier);
+
+const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+const isPhone = /^\d{10}$/.test(identifier);
+
+console.log({ isEmail, isPhone });
+
 
   if (!isEmail && !isPhone) {
     throw new AppError("Invalid email or phone number", 400, {

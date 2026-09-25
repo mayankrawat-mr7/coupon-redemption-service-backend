@@ -19,6 +19,7 @@ jest.unstable_mockModule("../../services/productService.js", () => ({
 // Silence structured logging during integration runs.
 jest.unstable_mockModule("../../utils/logger.js", () => ({
   default: { log: jest.fn() },
+  logSuccess: jest.fn(),
 }));
 
 const productService = await import("../../services/productService.js");

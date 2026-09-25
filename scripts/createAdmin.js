@@ -6,8 +6,8 @@ import User from "../models/userModel.js";
 
 const createAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
 
+    await mongoose.connect(process.env.MONGO_URI);
     const existingAdmin = await User.findOne({ role: "admin" });
 
     if (existingAdmin) {

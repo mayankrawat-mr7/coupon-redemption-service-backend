@@ -15,6 +15,7 @@ jest.unstable_mockModule(
 
 jest.unstable_mockModule("../../utils/logger.js", () => ({
   default: { log: jest.fn() },
+  logSuccess: jest.fn(),
 }));
 
 const importJobService =
@@ -61,7 +62,7 @@ describe("CSV import integration", () => {
         );
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe(
+      expect(res.body.errors[0].message).toBe(
         "CSV file is required"
       );
 

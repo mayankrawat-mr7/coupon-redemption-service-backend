@@ -12,6 +12,7 @@ jest.unstable_mockModule("../../services/redemptionService.js", () => ({
 
 jest.unstable_mockModule("../../utils/logger.js", () => ({
   default: { log: jest.fn() },
+  logSuccess: jest.fn(),
 }));
 
 const redemptionService =

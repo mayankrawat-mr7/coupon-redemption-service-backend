@@ -15,6 +15,7 @@ jest.unstable_mockModule("../../services/couponService.js", () => ({
 
 jest.unstable_mockModule("../../utils/logger.js", () => ({
   default: { log: jest.fn() },
+  logSuccess: jest.fn(),
 }));
 
 const couponService = await import("../../services/couponService.js");

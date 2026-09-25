@@ -47,3 +47,19 @@ export const csvImportRateLimiter = rateLimit({
     message: "Too many CSV import requests. Please try again later.",
   },
 });
+
+/**
+ * Limits redemption attempts by authenticated customer, not by shared IP.
+ */
+export const redemptionRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  keyGenerator: (req) => `user:${req.user.id}`,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    responseCode: 1,
+    status: "error",
+    message: "Too many redemption attempts. Please try again later.",
+  },
+});

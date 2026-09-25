@@ -1,7 +1,12 @@
 import Joi from "joi";
 
 export const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
+  identifier: Joi.alternatives()
+    .try(
+      Joi.string().email(),
+      Joi.string().pattern(/^\d{10}$/)
+    )
+    .required(),
   password: Joi.string().required(),
 });
 

@@ -2,6 +2,8 @@ import fs from "fs-extra";
 
 import { catchAsync } from "../utils/helpers.js";
 import AppSuccess from "../middlewares/appSuccess.js";
+import AppError from "../middlewares/appError.js";
+import { logSuccess } from "../utils/logger.js";
 
 import {
   createImportJob as createImportJobService,
@@ -10,11 +12,7 @@ import {
 
 export const createImportJob = catchAsync(async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({
-      responseCode: 1,
-      status: "error",
-      message: "CSV file is required",
-    });
+    throw new AppError("CSV file is required", 400);
   }
 
   try {
@@ -23,6 +21,10 @@ export const createImportJob = catchAsync(async (req, res) => {
       filePath: req.file.path,
       createdBy: req.user.id,
       requestId: req.requestId,
+    });
+    logSuccess(req, "CSV import job queued", {
+      actorId: req.user.id,
+      jobId: importJob.id || importJob._id?.toString(),
     });
 
     return new AppSuccess(res, {

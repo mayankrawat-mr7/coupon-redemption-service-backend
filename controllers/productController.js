@@ -1,5 +1,6 @@
 import { catchAsync } from "../utils/helpers.js";
 import AppSuccess from "../middlewares/appSuccess.js";
+import { logSuccess } from "../utils/logger.js";
 import {
   getAllProductsService,
   createProductService,
@@ -19,6 +20,9 @@ export const getAllProducts = catchAsync(async (req, res) => {
 
 export const createProduct = catchAsync(async (req, res) => {
   const product = await createProductService(req.body);
+  logSuccess(req, "Product created", {
+    productId: product.id || product._id?.toString(),
+  });
   return new AppSuccess(res, {
     statusCode: 201,
     message: "Product created successfully",
@@ -36,6 +40,7 @@ export const getProductById = catchAsync(async (req, res) => {
 
 export const updateProduct = catchAsync(async (req, res) => {
   const product = await updateProductService(req.params.id, req.body);
+  logSuccess(req, "Product updated", { productId: req.params.id });
   return new AppSuccess(res, {
     message: "Product updated successfully",
     data: product,
@@ -44,6 +49,7 @@ export const updateProduct = catchAsync(async (req, res) => {
 
 export const deleteProduct = catchAsync(async (req, res) => {
   const deleted = await deleteProductService(req.params.id);
+  logSuccess(req, "Product deleted", { productId: req.params.id });
   return new AppSuccess(res, {
     message: "Product deleted successfully",
     data: { deleted },
@@ -53,6 +59,7 @@ export const deleteProduct = catchAsync(async (req, res) => {
 export const purchaseProduct = catchAsync(async (req, res) => {
   const { quantity } = req.body;
   const product = await purchaseProductService(req.params.id, quantity);
+  logSuccess(req, "Product purchased", { productId: req.params.id, quantity });
   return new AppSuccess(res, {
     message: "Product purchased successfully",
     data: product,
