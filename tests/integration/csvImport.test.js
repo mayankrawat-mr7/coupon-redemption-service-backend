@@ -10,6 +10,8 @@ jest.unstable_mockModule(
   () => ({
     createImportJob: jest.fn(),
     getImportJobById: jest.fn(),
+    processImportJob: jest.fn(),
+    storeImportFile: jest.fn(),
   })
 );
 
@@ -71,18 +73,21 @@ describe("CSV import integration", () => {
       ).not.toHaveBeenCalled();
     });
 
-    it("should queue a CSV import job", async () => {
+    it("should store and process a CSV import job", async () => {
       const importJob = {
         _id: "job1",
         fileName: "coupons.csv",
-        status: "QUEUED",
+        status: "PROCESSING",
         createdBy: "admin1",
         requestId: "request-123",
       };
+      const completedJob = { ...importJob, status: "COMPLETED", totalRows: 1 };
 
       importJobService.createImportJob.mockResolvedValue(
         importJob
       );
+      importJobService.storeImportFile.mockResolvedValue("file1");
+      importJobService.processImportJob.mockResolvedValue(completedJob);
 
       const csvContent = `code,discountType,discountValue,maxUses,perUserLimit,startsAt,expiresAt,status
 SAVE20,PERCENT,20,100,1,2026-09-24,2026-12-31,ACTIVE`;
@@ -100,12 +105,12 @@ SAVE20,PERCENT,20,100,1,2026-09-24,2026-12-31,ACTIVE`;
           "coupons.csv"
         );
 
-      expect(res.status).toBe(202);
+      expect(res.status).toBe(201);
       expect(res.body.status).toBe("success");
       expect(res.body.message).toBe(
-        "CSV import job queued successfully"
+        "CSV import completed"
       );
-      expect(res.body.data).toEqual(importJob);
+      expect(res.body.data).toEqual(completedJob);
 
       expect(
         importJobService.createImportJob
@@ -115,9 +120,11 @@ SAVE20,PERCENT,20,100,1,2026-09-24,2026-12-31,ACTIVE`;
         importJobService.createImportJob.mock.calls[0][0];
 
       expect(call.fileName).toBe("coupons.csv");
+      expect(call.fileId).toBe("file1");
       expect(call.createdBy).toBe("admin1");
       expect(call.requestId).toBe("request-123");
-      expect(call.filePath).toEqual(expect.any(String));
+      expect(importJobService.storeImportFile).toHaveBeenCalledTimes(1);
+      expect(importJobService.processImportJob).toHaveBeenCalledWith(importJob);
     });
   });
 
