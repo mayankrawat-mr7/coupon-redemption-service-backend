@@ -8,7 +8,8 @@ export default {
     'middlewares/**/*.js',
     'routes/**/*.js',
     'utils/**/*.js',
-    '!**/node_modules/**'
+    '!**/node_modules/**',
+    '!utils/raceTestTokens.js'
   ],
   clearMocks: true,
   resetMocks: true
