@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Coupon from "../models/couponModel.js";
 import Redemption from "../models/redemptionModel.js";
 import AppError from "../middlewares/appError.js";
-
+import {APIFeatures} from "../utils/apiFeatures.js";
 // Redeem coupon
 export const redeemCoupon = async (userId, code, orderId) => {
   // 1. Find coupon
@@ -123,6 +123,21 @@ export const getMyRedemptions = async (userId) => {
   })
     .populate("couponId")
     .sort("-createdAt");
+
+  return redemptions;
+};
+// Get all redemptions (admin) — supports the same filter/sort/paginate query params as coupons
+export const getAllRedemptions = async (query) => {
+  const features = new APIFeatures(
+    Redemption.find().populate("couponId").populate("userId", "name email"),
+    query
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const redemptions = await features.query;
 
   return redemptions;
 };
