@@ -1,5 +1,3 @@
-import fs from "fs-extra";
-
 import { catchAsync } from "../utils/helpers.js";
 import AppSuccess from "../middlewares/appSuccess.js";
 import AppError from "../middlewares/appError.js";
@@ -8,6 +6,8 @@ import { logSuccess } from "../utils/logger.js";
 import {
   createImportJob as createImportJobService,
   getImportJobById as getImportJobByIdService,
+  processImportJob,
+  storeImportFile,
 } from "../services/importJobService.js";
 
 export const createImportJob = catchAsync(async (req, res) => {
@@ -15,27 +15,28 @@ export const createImportJob = catchAsync(async (req, res) => {
     throw new AppError("CSV file is required", 400);
   }
 
-  try {
-    const importJob = await createImportJobService({
-      fileName: req.file.originalname,
-      filePath: req.file.path,
-      createdBy: req.user.id,
-      requestId: req.requestId,
-    });
-    logSuccess(req, "CSV import job queued", {
-      actorId: req.user.id,
-      jobId: importJob.id || importJob._id?.toString(),
-    });
+  const fileId = await storeImportFile({
+    buffer: req.file.buffer,
+    fileName: req.file.originalname,
+    mimeType: req.file.mimetype,
+  });
+  const importJob = await createImportJobService({
+    fileName: req.file.originalname,
+    fileId,
+    createdBy: req.user.id,
+    requestId: req.requestId,
+  });
+  const completedJob = await processImportJob(importJob);
+  logSuccess(req, "CSV import completed", {
+    actorId: req.user.id,
+    jobId: importJob.id || importJob._id?.toString(),
+  });
 
-    return new AppSuccess(res, {
-      statusCode: 202,
-      message: "CSV import job queued successfully",
-      data: importJob,
-    });
-  } catch (error) {
-    await fs.remove(req.file.path);
-    throw error;
-  }
+  return new AppSuccess(res, {
+    statusCode: 201,
+    message: "CSV import completed",
+    data: completedJob,
+  });
 });
 
 export const getImportJobById = catchAsync(async (req, res) => {

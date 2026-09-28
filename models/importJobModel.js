@@ -12,8 +12,8 @@ const importJobSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["QUEUED", "PROCESSING", "COMPLETED", "FAILED"],
-      default: "QUEUED",
+      enum: ["PROCESSING", "COMPLETED", "FAILED"],
+      default: "PROCESSING",
       index: true,
     },
 
@@ -54,8 +54,9 @@ const importJobSchema = new Schema(
       },
     ],
 
-    filePath: {
-      type: String,
+    // ObjectId of the document in the couponImports.files GridFS collection.
+    fileId: {
+      type: Schema.Types.ObjectId,
       required: true,
     },
 
