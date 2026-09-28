@@ -8,6 +8,7 @@ jest.unstable_mockModule("../../services/redemptionService.js", () => ({
   redeemCoupon: jest.fn(),
   getMyRedemptions: jest.fn(),
   revertRedemption: jest.fn(),
+  getAllRedemptions: jest.fn(),
 }));
 
 jest.unstable_mockModule("../../utils/logger.js", () => ({
@@ -146,6 +147,84 @@ describe("Redemption integration", () => {
       expect(
         redemptionService.getMyRedemptions
       ).not.toHaveBeenCalled();
+    });
+  });
+
+    describe("GET /api/admin/redemptions", () => {
+    it("should reject unauthenticated requests", async () => {
+      const res = await request(app).get("/api/admin/redemptions");
+
+      expect(res.status).toBe(401);
+      expect(
+        redemptionService.getAllRedemptions
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should reject a customer from listing all redemptions", async () => {
+      const res = await request(app)
+        .get("/api/admin/redemptions")
+        .set("Authorization", `Bearer ${customerToken}`);
+
+      expect(res.status).toBe(403);
+      expect(
+        redemptionService.getAllRedemptions
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should return all redemptions for an admin", async () => {
+      const redemptions = [
+        {
+          _id: "redemption1",
+          couponId: "coupon1",
+          userId: "customer1",
+          orderId: "ORDER-001",
+          status: "APPLIED",
+        },
+        {
+          _id: "redemption2",
+          couponId: "coupon1",
+          userId: "customer2",
+          orderId: "ORDER-002",
+          status: "REVERTED",
+        },
+      ];
+
+      redemptionService.getAllRedemptions.mockResolvedValue(
+        redemptions
+      );
+
+      const res = await request(app)
+        .get("/api/admin/redemptions")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("success");
+      expect(res.body.message).toBe(
+        "Redemptions fetched successfully"
+      );
+      expect(res.body.data).toEqual(redemptions);
+      expect(
+        redemptionService.getAllRedemptions
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it("should pass query params (filter/sort/pagination) to the service", async () => {
+      redemptionService.getAllRedemptions.mockResolvedValue([]);
+
+      const res = await request(app)
+        .get("/api/admin/redemptions?status=APPLIED&page=2&limit=5")
+        .set("Authorization", `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(
+        redemptionService.getAllRedemptions
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "APPLIED",
+          page: "2",
+          limit: "5",
+        })
+      );
     });
   });
 

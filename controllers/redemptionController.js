@@ -6,8 +6,19 @@ import {
   redeemCoupon as redeemCouponService,
   getMyRedemptions as getMyRedemptionsService,
   revertRedemption as revertRedemptionService,
+  getAllRedemptions as getAllRedemptionsService,
 } from "../services/redemptionService.js";
 
+
+// Get all redemptions (admin)
+export const getAllRedemptions = catchAsync(async (req, res) => {
+  const redemptions = await getAllRedemptionsService(req.query);
+
+  return new AppSuccess(res, {
+    message: "Redemptions fetched successfully",
+    data: redemptions,
+  });
+});
 // Redeem coupon
 export const redeemCoupon = catchAsync(async (req, res) => {
   const { code, orderId } = req.body;
