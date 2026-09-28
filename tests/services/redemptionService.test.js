@@ -16,6 +16,7 @@ jest.unstable_mockModule("mongoose", () => ({
 jest.unstable_mockModule("../../models/couponModel.js", () => ({
   default: {
     findOne: jest.fn(),
+    findById: jest.fn(),
     findOneAndUpdate: jest.fn(),
   },
 }));
@@ -238,6 +239,66 @@ describe("RedemptionService", () => {
 
       expect(Redemption.create).not.toHaveBeenCalled();
       expect(mockSession.endSession).toHaveBeenCalledTimes(1);
+    });
+
+    describe("duplicate-key (E11000) handling — Gates 2 & 3", () => {
+      const dupError = () =>
+        Object.assign(new Error("E11000 duplicate key"), { code: 11000 });
+
+      it("should return the original redemption when the same order is retried", async () => {
+        const coupon = makeCoupon({ usedCount: 1 });
+        const original = {
+          _id: "r1",
+          couponId: "coupon1",
+          userId: "user1",
+          orderId: "ORDER-1",
+          status: "APPLIED",
+        };
+        const fresh = makeCoupon({ usedCount: 1 });
+
+        Coupon.findOne.mockResolvedValue(coupon);
+        Coupon.findById.mockResolvedValue(fresh);
+        mockSession.withTransaction.mockRejectedValue(dupError());
+        Redemption.findOne.mockResolvedValue(original);
+
+        const result = await redeemCoupon("user1", "SAVE20", "ORDER-1");
+
+        expect(result).toEqual({ redemption: original, coupon: fresh });
+        expect(Redemption.findOne).toHaveBeenCalledWith({
+          couponId: "coupon1",
+          userId: "user1",
+          orderId: "ORDER-1",
+          status: "APPLIED",
+        });
+        expect(mockSession.endSession).toHaveBeenCalledTimes(1);
+      });
+
+      it("should throw a clean 409 when the user redeemed with a different order", async () => {
+        Coupon.findOne.mockResolvedValue(makeCoupon());
+        mockSession.withTransaction.mockRejectedValue(dupError());
+        Redemption.findOne.mockResolvedValue(null);
+
+        await expect(
+          redeemCoupon("user1", "SAVE20", "ORDER-2")
+        ).rejects.toMatchObject({
+          message: "You have already redeemed this coupon",
+          statusCode: 409,
+        });
+
+        expect(mockSession.endSession).toHaveBeenCalledTimes(1);
+      });
+
+      it("should also recognise codeName DuplicateKey", async () => {
+        Coupon.findOne.mockResolvedValue(makeCoupon());
+        mockSession.withTransaction.mockRejectedValue(
+          Object.assign(new Error("dup"), { codeName: "DuplicateKey" })
+        );
+        Redemption.findOne.mockResolvedValue(null);
+
+        await expect(
+          redeemCoupon("user1", "SAVE20", "ORDER-2")
+        ).rejects.toThrow("You have already redeemed this coupon");
+      });
     });
 
     it("should always end the session even if the transaction throws", async () => {
