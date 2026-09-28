@@ -7,7 +7,7 @@ import { initializeCrons } from "./services/cronService.js";
 const PORT = process.env.PORT || 1234;
 
 // server.js owns the runtime side effects: DB connection, cron jobs, listening.
-connectDB();
+await connectDB();
 initializeCrons();
 
 app.listen(PORT, () => {
