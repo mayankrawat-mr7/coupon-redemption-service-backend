@@ -9,7 +9,6 @@ jest.unstable_mockModule("../../services/couponService.js", () => ({
   getAllCoupons: jest.fn(),
   getCouponById: jest.fn(),
   updateCoupon: jest.fn(),
-  pauseCoupon: jest.fn(),
   deleteCoupon: jest.fn(),
 }));
 
@@ -44,7 +43,6 @@ const couponPayload = {
   perUserLimit: 1,
   startsAt: "2026-09-24",
   expiresAt: "2026-12-31",
-  status: "ACTIVE",
 };
 
 describe("Coupon integration", () => {
@@ -196,30 +194,6 @@ describe("Coupon integration", () => {
         {
           discountValue: 30,
         }
-      );
-    });
-  });
-
-  describe("PATCH /api/admin/coupons/:id/pause", () => {
-    it("should pause a coupon", async () => {
-      const pausedCoupon = {
-        _id: "coupon1",
-        ...couponPayload,
-        status: "PAUSED",
-      };
-
-      couponService.pauseCoupon.mockResolvedValue(pausedCoupon);
-
-      const res = await request(app)
-        .patch("/api/admin/coupons/coupon1/pause")
-        .set("Authorization", `Bearer ${adminToken}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.message).toBe("Coupon paused successfully");
-      expect(res.body.data.status).toBe("PAUSED");
-
-      expect(couponService.pauseCoupon).toHaveBeenCalledWith(
-        "coupon1"
       );
     });
   });

@@ -39,7 +39,6 @@ export const createCouponSchema = Joi.object({
     "any.required": "Expiry date is required",
   }),
 
-  status: Joi.string().valid("ACTIVE", "PAUSED").default("ACTIVE"),
 });
 
 export const updateCouponSchema = Joi.object({
@@ -57,5 +56,4 @@ export const updateCouponSchema = Joi.object({
 
   expiresAt: Joi.date(),
 
-  status: Joi.string().valid("ACTIVE", "PAUSED"),
 }).min(1);

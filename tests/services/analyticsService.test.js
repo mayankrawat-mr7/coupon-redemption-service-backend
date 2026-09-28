@@ -26,11 +26,7 @@ describe("AnalyticsService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Coupon.countDocuments is called in order: total, active, paused
-    Coupon.countDocuments
-      .mockResolvedValueOnce(10)
-      .mockResolvedValueOnce(7)
-      .mockResolvedValueOnce(3);
+    Coupon.countDocuments.mockResolvedValueOnce(10);
 
     // Redemption.countDocuments is called in order: total, applied, reverted
     Redemption.countDocuments
@@ -48,25 +44,19 @@ describe("AnalyticsService", () => {
       const result = await getAnalytics();
 
       expect(result).toEqual({
-        coupons: { total: 10, active: 7, paused: 3 },
+        coupons: { total: 10 },
         redemptions: { total: 50, applied: 45, reverted: 5 },
         usage: { totalUsed: 120, totalLimit: 1000 },
       });
     });
 
-    it("should query counts with the correct status filters", async () => {
+    it("should query coupon totals and redemption status counts", async () => {
       Coupon.aggregate.mockResolvedValue([]);
 
       await getAnalytics();
 
-      expect(Coupon.countDocuments).toHaveBeenCalledTimes(3);
+      expect(Coupon.countDocuments).toHaveBeenCalledTimes(1);
       expect(Coupon.countDocuments).toHaveBeenNthCalledWith(1);
-      expect(Coupon.countDocuments).toHaveBeenNthCalledWith(2, {
-        status: "ACTIVE",
-      });
-      expect(Coupon.countDocuments).toHaveBeenNthCalledWith(3, {
-        status: "PAUSED",
-      });
 
       expect(Redemption.countDocuments).toHaveBeenCalledTimes(3);
       expect(Redemption.countDocuments).toHaveBeenNthCalledWith(1);

@@ -89,8 +89,8 @@ describe("CSV import integration", () => {
       importJobService.storeImportFile.mockResolvedValue("file1");
       importJobService.processImportJob.mockResolvedValue(completedJob);
 
-      const csvContent = `code,discountType,discountValue,maxUses,perUserLimit,startsAt,expiresAt,status
-SAVE20,PERCENT,20,100,1,2026-09-24,2026-12-31,ACTIVE`;
+      const csvContent = `code,discountType,discountValue,maxUses,perUserLimit,startsAt,expiresAt
+SAVE20,PERCENT,20,100,1,2026-09-24,2026-12-31`;
 
       const res = await request(app)
         .post("/api/admin/coupons/import")

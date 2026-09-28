@@ -52,18 +52,12 @@ const couponSchema = new Schema(
       required: [true, "Expiry date is required"],
     },
 
-    status: {
-      type: String,
-      enum: ["ACTIVE", "PAUSED"],
-      default: "ACTIVE",
-    },
   },
   {
     timestamps: true,
   }
 );
 
-couponSchema.index({ status: 1, startsAt: 1, expiresAt: 1 });
 // couponSchema.index({ code: 1 });
 couponSchema.index({ expiresAt: 1 });
 

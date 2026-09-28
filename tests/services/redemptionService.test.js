@@ -62,7 +62,6 @@ const DAY = 24 * 60 * 60 * 1000;
 const makeCoupon = (overrides = {}) => ({
   _id: "coupon1",
   code: "SAVE20",
-  status: "ACTIVE",
   maxUses: 100,
   usedCount: 0,
   perUserLimit: 1,
@@ -114,14 +113,6 @@ describe("RedemptionService", () => {
       expect(Coupon.findOne).toHaveBeenCalledWith({ code: "SAVE20" });
     });
 
-    it("should throw if coupon is not ACTIVE", async () => {
-      Coupon.findOne.mockResolvedValue(makeCoupon({ status: "PAUSED" }));
-
-      await expect(
-        redeemCoupon("user1", "SAVE20", "ORDER-1")
-      ).rejects.toThrow("Coupon is not active");
-    });
-
     it("should throw if coupon has not started yet", async () => {
       Coupon.findOne.mockResolvedValue(
         makeCoupon({ startsAt: new Date(Date.now() + DAY) })
@@ -170,7 +161,6 @@ describe("RedemptionService", () => {
       expect(Coupon.findOneAndUpdate).toHaveBeenCalledWith(
         {
           _id: "coupon1",
-          status: "ACTIVE",
           usedCount: { $lt: 100 },
         },
         { $inc: { usedCount: 1 } },

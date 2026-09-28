@@ -4,21 +4,11 @@ import Redemption from "../models/redemptionModel.js";
 export const getAnalytics = async () => {
   const [
     totalCoupons,
-    activeCoupons,
-    pausedCoupons,
     totalRedemptions,
     appliedRedemptions,
     revertedRedemptions,
   ] = await Promise.all([
     Coupon.countDocuments(),
-
-    Coupon.countDocuments({
-      status: "ACTIVE",
-    }),
-
-    Coupon.countDocuments({
-      status: "PAUSED",
-    }),
 
     Redemption.countDocuments(),
 
@@ -44,8 +34,6 @@ export const getAnalytics = async () => {
   return {
     coupons: {
       total: totalCoupons,
-      active: activeCoupons,
-      paused: pausedCoupons,
     },
 
     redemptions: {

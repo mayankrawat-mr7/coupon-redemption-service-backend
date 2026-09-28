@@ -44,12 +44,7 @@ export const redeemCoupon = async (userId, code, orderId) => {
     throw new AppError("Coupon not found", 404);
   }
 
-  // 2. Check coupon status
-  if (coupon.status !== "ACTIVE") {
-    throw new AppError("Coupon is not active", 400);
-  }
-
-  // 3. Check coupon dates
+  // 2. Check coupon dates
   const now = new Date();
 
   if (now < coupon.startsAt) {
@@ -66,7 +61,7 @@ export const redeemCoupon = async (userId, code, orderId) => {
 
   try {
     await session.withTransaction(async () => {
-      // 4. Gate 3: Check idempotency first
+      // 3. Gate 3: Check idempotency first
       const existingRedemption = await Redemption.findOne({
         couponId: coupon._id,
         userId,
@@ -83,11 +78,10 @@ export const redeemCoupon = async (userId, code, orderId) => {
         return;
       }
 
-      // 5. Gate 1: Atomically check and increment global usage
+      // 4. Gate 1: Atomically check and increment global usage
       const updatedCoupon = await Coupon.findOneAndUpdate(
         {
           _id: coupon._id,
-          status: "ACTIVE",
           usedCount: { $lt: coupon.maxUses },
         },
         {
@@ -106,7 +100,7 @@ export const redeemCoupon = async (userId, code, orderId) => {
         );
       }
 
-      // 6. Gate 2: Check per-user usage limit
+      // 5. Gate 2: Check per-user usage limit
       const userRedemptionCount =
         await Redemption.countDocuments({
           couponId: coupon._id,
@@ -121,7 +115,7 @@ export const redeemCoupon = async (userId, code, orderId) => {
         );
       }
 
-      // 7. Create redemption
+      // 6. Create redemption
       const createdRedemption = await Redemption.create(
         [
           {
