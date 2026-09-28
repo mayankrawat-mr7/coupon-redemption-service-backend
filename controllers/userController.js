@@ -7,6 +7,7 @@ import {
 } from "../services/authUserService.js";
 import User from "../models/userModel.js";
 import AppError from "../middlewares/appError.js";
+import { logSuccess } from "../utils/logger.js";
 
 export const loginUser = catchAsync(async (req, res) => {
   const { identifier, password } = req.body;
@@ -15,6 +16,7 @@ export const loginUser = catchAsync(async (req, res) => {
     password,
     res
   );
+  logSuccess(req, "User login succeeded", { userId: user.id });
   return new AppSuccess(res, {
     message: "User login successfully",
     data: { accessToken, refreshToken, user },
@@ -29,6 +31,7 @@ export const refreshUserAccessToken = catchAsync(async (req, res) => {
     user,
     res
   );
+  logSuccess(req, "Access token refreshed", { userId: user.id });
 
   // Send the response
   return new AppSuccess(res, {
@@ -39,6 +42,7 @@ export const refreshUserAccessToken = catchAsync(async (req, res) => {
 
 export const logoutUser = catchAsync(async (req, res) => {
   const { deleted } = await logoutUserService(req.user, res);
+  logSuccess(req, "User logged out", { userId: req.user.id });
   return new AppSuccess(res, {
     message: "User logged out successfully",
     data: { deleted },
@@ -116,6 +120,10 @@ export const createUser = catchAsync(async (req, res) => {
     });
   }
   const user = await User.create({ name, email, phone, password, role });
+  logSuccess(req, "User created", {
+    actorId: req.user.id,
+    userId: user.id || user._id?.toString(),
+  });
   return new AppSuccess(res, {
     statusCode: 201,
     message: "User created successfully",
@@ -166,6 +174,7 @@ export const updateUser = catchAsync(async (req, res) => {
       ],
     });
   }
+  logSuccess(req, "User updated", { actorId: req.user.id, userId: id });
   return new AppSuccess(res, {
     message: "User updated successfully",
     data: user,
@@ -185,6 +194,7 @@ export const deleteUser = catchAsync(async (req, res) => {
     });
   }
   const deleted = await User.findByIdAndDelete(id);
+  logSuccess(req, "User deleted", { actorId: req.user.id, userId: id });
   return new AppSuccess(res, {
     message: "User deleted successfully",
     data: { deleted },

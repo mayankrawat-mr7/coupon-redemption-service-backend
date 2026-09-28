@@ -2,8 +2,38 @@ import mongoose from "mongoose";
 import Coupon from "../models/couponModel.js";
 import Redemption from "../models/redemptionModel.js";
 import AppError from "../middlewares/appError.js";
-
+import {APIFeatures} from "../utils/apiFeatures.js";
 // Redeem coupon
+// True for MongoDB duplicate-key errors (E11000), including ones surfaced from
+// inside a transaction.
+const isDuplicateKeyError = (error) =>
+  error?.code === 11000 || error?.codeName === "DuplicateKey";
+
+// Gates 2 + 3: the partial unique indexes on Redemption are the real enforcement.
+// When one fires the transaction has already aborted (usedCount rolled back), so
+// we look at what is actually committed:
+//  - same user + same orderId  -> it's a client retry: return the ORIGINAL redemption
+//  - otherwise                 -> the user already used this coupon: clean business error
+const resolveDuplicateRedemption = async (coupon, userId, orderId) => {
+  const original = await Redemption.findOne({
+    couponId: coupon._id,
+    userId,
+    orderId,
+    status: "APPLIED",
+  });
+
+  if (original) {
+    const current = await Coupon.findById(coupon._id);
+    return { redemption: original, coupon: current ?? coupon };
+  }
+
+  throw new AppError("You have already redeemed this coupon", 409, {
+    errors: [
+      { field: "code", message: "You have already redeemed this coupon" },
+    ],
+  });
+};
+
 export const redeemCoupon = async (userId, code, orderId) => {
   // 1. Find coupon
   const coupon = await Coupon.findOne({
@@ -111,6 +141,11 @@ export const redeemCoupon = async (userId, code, orderId) => {
     });
 
     return result;
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      return await resolveDuplicateRedemption(coupon, userId, orderId);
+    }
+    throw error;
   } finally {
     await session.endSession();
   }
@@ -123,6 +158,21 @@ export const getMyRedemptions = async (userId) => {
   })
     .populate("couponId")
     .sort("-createdAt");
+
+  return redemptions;
+};
+// Get all redemptions (admin) — supports the same filter/sort/paginate query params as coupons
+export const getAllRedemptions = async (query) => {
+  const features = new APIFeatures(
+    Redemption.find().populate("couponId").populate("userId", "name email"),
+    query
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const redemptions = await features.query;
 
   return redemptions;
 };

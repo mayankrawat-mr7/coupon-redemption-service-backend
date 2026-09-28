@@ -21,4 +21,20 @@ describe("cronService", () => {
       expect.arrayContaining(["0 * * * *", "0 0 * * *"])
     );
   });
+
+  it("should run the scheduled callbacks without throwing", async () => {
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    initializeCrons();
+
+    const callbacks = cron.schedule.mock.calls.map((call) => call[1]);
+    for (const callback of callbacks) {
+      await callback();
+    }
+
+    expect(logSpy).toHaveBeenCalledWith("Running basic cron");
+    expect(logSpy).toHaveBeenCalledWith("Running another cron");
+
+    logSpy.mockRestore();
+  });
 });

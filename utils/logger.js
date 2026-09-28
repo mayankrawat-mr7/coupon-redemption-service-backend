@@ -33,4 +33,11 @@ class Logger {
   }
 }
 
+export const logSuccess = (req, message, labels = {}) => {
+  Logger.log("info", message, {
+    ...labels,
+    ...(req.requestId ? { requestId: req.requestId } : {}),
+  });
+};
+
 export default Logger;
