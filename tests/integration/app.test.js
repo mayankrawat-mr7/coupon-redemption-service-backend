@@ -101,4 +101,19 @@ describe("app integration", () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("success");
   });
+
+  it("restores a user session from the access-token cookie", async () => {
+    const token = jwt.sign(
+      { id: "customer1", role: "customer", name: "Customer" },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const res = await request(app)
+      .get("/api/users/session")
+      .set("Cookie", `accessToken=${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toMatchObject({ id: "customer1", role: "customer" });
+  });
 });

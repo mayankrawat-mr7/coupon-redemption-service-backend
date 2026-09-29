@@ -27,4 +27,4 @@ export const allowedOrigins = {
   ],
 };
 
-export const userRefreshTokenPath = "/api/users/auth/update-refresh-access";
+export const userRefreshTokenPath = "/api/users/update-refresh-access";

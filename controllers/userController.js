@@ -40,6 +40,13 @@ export const refreshUserAccessToken = catchAsync(async (req, res) => {
   });
 });
 
+export const getCurrentUser = catchAsync(async (req, res) => {
+  return new AppSuccess(res, {
+    message: "Current user fetched successfully",
+    data: req.user,
+  });
+});
+
 export const logoutUser = catchAsync(async (req, res) => {
   const { deleted } = await logoutUserService(req.user, res);
   logSuccess(req, "User logged out", { userId: req.user.id });
