@@ -17,6 +17,7 @@ import {
   loginUser,
   logoutUser,
   refreshUserAccessToken,
+  getCurrentUser,
 } from "../controllers/userController.js";
 
 import {
@@ -59,6 +60,8 @@ router
     verifyToken("access"),
     logoutUser
   );
+
+router.get("/session", verifyToken("access"), getCurrentUser);
 
 // Admin user routes
 router
