@@ -5,7 +5,6 @@ import {
   getAllCoupons,
   getCouponById,
   updateCoupon,
-  pauseCoupon,
   deleteCoupon,
 } from "../controllers/couponController.js";
 
@@ -34,7 +33,5 @@ router
     updateCoupon
   )
   .delete(deleteCoupon);
-
-router.patch("/:id/pause", pauseCoupon);
 
 export default router;

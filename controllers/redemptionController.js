@@ -21,13 +21,14 @@ export const getAllRedemptions = catchAsync(async (req, res) => {
 });
 // Redeem coupon
 export const redeemCoupon = catchAsync(async (req, res) => {
-  const { code, orderId } = req.body;
+  const { code, orderId, orderAmount } = req.body;
   const userId = req.user.id;
 
   const result = await redeemCouponService(
     userId,
     code,
-    orderId
+    orderId,
+    orderAmount
   );
   logSuccess(req, "Coupon redeemed", {
     userId,

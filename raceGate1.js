@@ -85,6 +85,7 @@ const sendRedemption = async ({ token, userId }, index) => {
       body: JSON.stringify({
         code: couponCode,
         orderId: `RACE1-ORDER-${index}`,
+        orderAmount: 100,
       }),
     });
 

@@ -28,7 +28,6 @@ const {
   getAllCoupons,
   getCouponById,
   updateCoupon,
-  pauseCoupon,
   deleteCoupon,
 } = await import("../../services/couponService.js");
 
@@ -59,7 +58,6 @@ describe("CouponService", () => {
         perUserLimit: 1,
         startsAt: new Date(),
         expiresAt: new Date(),
-        status: "ACTIVE",
       };
 
       const mockCoupon = {
@@ -127,19 +125,11 @@ describe("CouponService", () => {
 
       APIFeatures.mockImplementation(() => mockFeatures);
 
-      const result = await getAllCoupons({
-        status: "ACTIVE",
-        page: "1",
-        limit: "10",
-      });
+      const result = await getAllCoupons({ page: "1", limit: "10" });
 
       expect(APIFeatures).toHaveBeenCalledWith(
         Coupon.find(),
-        {
-          status: "ACTIVE",
-          page: "1",
-          limit: "10",
-        }
+        { page: "1", limit: "10" }
       );
 
       expect(mockFeatures.filter).toHaveBeenCalled();
@@ -256,41 +246,6 @@ describe("CouponService", () => {
         updateCoupon("coupon123", {
           discountValue: 20,
         })
-      ).rejects.toThrow("Coupon not found");
-    });
-  });
-
-  describe("pauseCoupon", () => {
-    it("should pause coupon successfully", async () => {
-      const mockCoupon = {
-        _id: "coupon123",
-        code: "SAVE10",
-        status: "PAUSED",
-      };
-
-      Coupon.findByIdAndUpdate.mockResolvedValue(mockCoupon);
-
-      const result = await pauseCoupon("coupon123");
-
-      expect(Coupon.findByIdAndUpdate).toHaveBeenCalledWith(
-        "coupon123",
-        {
-          status: "PAUSED",
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-
-      expect(result).toEqual(mockCoupon);
-    });
-
-    it("should throw error when coupon does not exist", async () => {
-      Coupon.findByIdAndUpdate.mockResolvedValue(null);
-
-      await expect(
-        pauseCoupon("coupon123")
       ).rejects.toThrow("Coupon not found");
     });
   });

@@ -9,13 +9,12 @@ const main = async () => {
     const coupons = await Coupon.find({
       code: { $in: ["RACE1", "RACE2", "RACE3", "RACE4"] },
     })
-      .select("code status maxUses usedCount perUserLimit startsAt expiresAt")
+      .select("code maxUses usedCount perUserLimit startsAt expiresAt")
       .lean();
 
     const report = await Promise.all(
       coupons.map(async (coupon) => ({
         code: coupon.code,
-        status: coupon.status,
         maxUses: coupon.maxUses,
         usedCount: coupon.usedCount,
         perUserLimit: coupon.perUserLimit,

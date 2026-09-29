@@ -1,7 +1,7 @@
 import { loadRaceTestTokens } from "./utils/raceTestTokens.js";
 
 const [CUSTOMER_TOKEN] = await loadRaceTestTokens();
-const payload = { code: "RACE3", orderId: "IDEMPOTENCY-001" };
+const payload = { code: "RACE3", orderId: "IDEMPOTENCY-001", orderAmount: 100 };
 
 const sendRequest = async () => {
   const response = await fetch("http://localhost:1234/api/users/redemptions", {

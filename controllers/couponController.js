@@ -7,7 +7,6 @@ import {
   getAllCoupons as getAllCouponsService,
   getCouponById as getCouponByIdService,
   updateCoupon as updateCouponService,
-  pauseCoupon as pauseCouponService,
   deleteCoupon as deleteCouponService,
 } from "../services/couponService.js";
 
@@ -56,19 +55,6 @@ export const updateCoupon = catchAsync(async (req, res) => {
 
   return new AppSuccess(res, {
     message: "Coupon updated successfully",
-    data: coupon,
-  });
-});
-
-// Pause coupon
-export const pauseCoupon = catchAsync(async (req, res) => {
-  const { id } = req.params;
-
-  const coupon = await pauseCouponService(id);
-  logSuccess(req, "Coupon paused", { couponId: id });
-
-  return new AppSuccess(res, {
-    message: "Coupon paused successfully",
     data: coupon,
   });
 });

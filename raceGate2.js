@@ -15,6 +15,7 @@ const results = await Promise.all(
         body: JSON.stringify({
           code: "RACE2",
           orderId: `RACE2-ORDER-${index}`,
+          orderAmount: 100,
         }),
       });
       return { status: response.status, body: await response.json() };

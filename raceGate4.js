@@ -22,12 +22,8 @@ const main = async () => {
     if (!coupon) throw new Error("Coupon RACE4 does not exist.");
 
     const now = new Date();
-    if (
-      coupon.status !== "ACTIVE" ||
-      now < coupon.startsAt ||
-      now > coupon.expiresAt
-    ) {
-      throw new Error("Coupon RACE4 must be active and within its start/expiry dates.");
+    if (now < coupon.startsAt || now > coupon.expiresAt) {
+      throw new Error("Coupon RACE4 must be within its start and expiry dates.");
     }
     if (coupon.perUserLimit !== 1) {
       throw new Error("Set RACE4 perUserLimit to 1 to exercise transaction rollback.");
@@ -61,6 +57,7 @@ const main = async () => {
             body: JSON.stringify({
               code: "RACE4",
               orderId: `RACE4-ORDER-${index}`,
+              orderAmount: 100,
             }),
           });
           return { status: response.status, body: await response.json() };

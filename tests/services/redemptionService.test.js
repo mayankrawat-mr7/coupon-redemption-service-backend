@@ -62,7 +62,8 @@ const DAY = 24 * 60 * 60 * 1000;
 const makeCoupon = (overrides = {}) => ({
   _id: "coupon1",
   code: "SAVE20",
-  status: "ACTIVE",
+  discountType: "PERCENT",
+  discountValue: 20,
   maxUses: 100,
   usedCount: 0,
   perUserLimit: 1,
@@ -98,7 +99,7 @@ describe("RedemptionService", () => {
       Coupon.findOne.mockResolvedValue(null);
 
       await expect(
-        redeemCoupon("user1", "nope", "ORDER-1")
+        redeemCoupon("user1", "nope", "ORDER-1", 100)
       ).rejects.toThrow("Coupon not found");
 
       expect(mongoose.startSession).not.toHaveBeenCalled();
@@ -108,18 +109,10 @@ describe("RedemptionService", () => {
       Coupon.findOne.mockResolvedValue(null);
 
       await expect(
-        redeemCoupon("user1", "save20", "ORDER-1")
+        redeemCoupon("user1", "save20", "ORDER-1", 100)
       ).rejects.toThrow();
 
       expect(Coupon.findOne).toHaveBeenCalledWith({ code: "SAVE20" });
-    });
-
-    it("should throw if coupon is not ACTIVE", async () => {
-      Coupon.findOne.mockResolvedValue(makeCoupon({ status: "PAUSED" }));
-
-      await expect(
-        redeemCoupon("user1", "SAVE20", "ORDER-1")
-      ).rejects.toThrow("Coupon is not active");
     });
 
     it("should throw if coupon has not started yet", async () => {
@@ -128,7 +121,7 @@ describe("RedemptionService", () => {
       );
 
       await expect(
-        redeemCoupon("user1", "SAVE20", "ORDER-1")
+        redeemCoupon("user1", "SAVE20", "ORDER-1", 100)
       ).rejects.toThrow("Coupon is not active yet");
     });
 
@@ -141,7 +134,7 @@ describe("RedemptionService", () => {
       );
 
       await expect(
-        redeemCoupon("user1", "SAVE20", "ORDER-1")
+        redeemCoupon("user1", "SAVE20", "ORDER-1", 100)
       ).rejects.toThrow("Coupon has expired");
     });
 
@@ -153,6 +146,9 @@ describe("RedemptionService", () => {
         couponId: "coupon1",
         userId: "user1",
         orderId: "ORDER-1",
+        orderAmount: 100,
+        discountAmount: 20,
+        finalAmount: 80,
         status: "APPLIED",
       };
 
@@ -162,7 +158,7 @@ describe("RedemptionService", () => {
       Redemption.countDocuments.mockReturnValue(withSession(0));
       Redemption.create.mockResolvedValue([created]);
 
-      const result = await redeemCoupon("user1", "SAVE20", "ORDER-1");
+      const result = await redeemCoupon("user1", "SAVE20", "ORDER-1", 100);
 
       expect(result).toEqual({ redemption: created, coupon: updatedCoupon });
 
@@ -170,7 +166,6 @@ describe("RedemptionService", () => {
       expect(Coupon.findOneAndUpdate).toHaveBeenCalledWith(
         {
           _id: "coupon1",
-          status: "ACTIVE",
           usedCount: { $lt: 100 },
         },
         { $inc: { usedCount: 1 } },
@@ -184,6 +179,9 @@ describe("RedemptionService", () => {
             couponId: "coupon1",
             userId: "user1",
             orderId: "ORDER-1",
+            orderAmount: 100,
+            discountAmount: 20,
+            finalAmount: 80,
             status: "APPLIED",
           },
         ],
@@ -206,7 +204,7 @@ describe("RedemptionService", () => {
       Coupon.findOne.mockResolvedValue(coupon);
       Redemption.findOne.mockReturnValue(withSession(existing));
 
-      const result = await redeemCoupon("user1", "SAVE20", "ORDER-1");
+      const result = await redeemCoupon("user1", "SAVE20", "ORDER-1", 100);
 
       expect(result).toEqual({ redemption: existing, coupon });
       expect(Coupon.findOneAndUpdate).not.toHaveBeenCalled();
@@ -220,7 +218,7 @@ describe("RedemptionService", () => {
       Coupon.findOneAndUpdate.mockResolvedValue(null);
 
       await expect(
-        redeemCoupon("user1", "SAVE20", "ORDER-1")
+        redeemCoupon("user1", "SAVE20", "ORDER-1", 100)
       ).rejects.toThrow("Coupon usage limit reached");
 
       expect(Redemption.create).not.toHaveBeenCalled();
@@ -234,7 +232,7 @@ describe("RedemptionService", () => {
       Redemption.countDocuments.mockReturnValue(withSession(1));
 
       await expect(
-        redeemCoupon("user1", "SAVE20", "ORDER-2")
+        redeemCoupon("user1", "SAVE20", "ORDER-2", 100)
       ).rejects.toThrow("You have reached the coupon usage limit");
 
       expect(Redemption.create).not.toHaveBeenCalled();
@@ -261,7 +259,7 @@ describe("RedemptionService", () => {
         mockSession.withTransaction.mockRejectedValue(dupError());
         Redemption.findOne.mockResolvedValue(original);
 
-        const result = await redeemCoupon("user1", "SAVE20", "ORDER-1");
+        const result = await redeemCoupon("user1", "SAVE20", "ORDER-1", 100);
 
         expect(result).toEqual({ redemption: original, coupon: fresh });
         expect(Redemption.findOne).toHaveBeenCalledWith({
@@ -279,7 +277,7 @@ describe("RedemptionService", () => {
         Redemption.findOne.mockResolvedValue(null);
 
         await expect(
-          redeemCoupon("user1", "SAVE20", "ORDER-2")
+          redeemCoupon("user1", "SAVE20", "ORDER-2", 100)
         ).rejects.toMatchObject({
           message: "You have already redeemed this coupon",
           statusCode: 409,
@@ -296,7 +294,7 @@ describe("RedemptionService", () => {
         Redemption.findOne.mockResolvedValue(null);
 
         await expect(
-          redeemCoupon("user1", "SAVE20", "ORDER-2")
+          redeemCoupon("user1", "SAVE20", "ORDER-2", 100)
         ).rejects.toThrow("You have already redeemed this coupon");
       });
     });
@@ -306,7 +304,7 @@ describe("RedemptionService", () => {
       mockSession.withTransaction.mockRejectedValue(new Error("db down"));
 
       await expect(
-        redeemCoupon("user1", "SAVE20", "ORDER-1")
+        redeemCoupon("user1", "SAVE20", "ORDER-1", 100)
       ).rejects.toThrow("db down");
 
       expect(mockSession.endSession).toHaveBeenCalledTimes(1);

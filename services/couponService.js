@@ -79,24 +79,6 @@ export const updateCoupon = async (couponId, updateData) => {
   return coupon;
 };
 
-// Pause coupon
-export const pauseCoupon = async (couponId) => {
-  const coupon = await Coupon.findByIdAndUpdate(
-    couponId,
-    { status: "PAUSED" },
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-
-  if (!coupon) {
-    throw new AppError("Coupon not found", 404);
-  }
-
-  return coupon;
-};
-
 // Delete coupon
 export const deleteCoupon = async (couponId) => {
   const coupon = await Coupon.findByIdAndDelete(couponId);
