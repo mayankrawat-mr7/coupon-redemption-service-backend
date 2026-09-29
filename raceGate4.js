@@ -57,6 +57,7 @@ const main = async () => {
             body: JSON.stringify({
               code: "RACE4",
               orderId: `RACE4-ORDER-${index}`,
+              orderAmount: 100,
             }),
           });
           return { status: response.status, body: await response.json() };

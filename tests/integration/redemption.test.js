@@ -48,6 +48,7 @@ describe("Redemption integration", () => {
         .send({
           code: "SAVE20",
           orderId: "ORDER-001",
+          orderAmount: 100,
         });
 
       expect(res.status).toBe(401);
@@ -61,6 +62,7 @@ describe("Redemption integration", () => {
         .send({
           code: "",
           orderId: "",
+          orderAmount: 0,
         });
 
       expect(res.status).toBe(400);
@@ -74,6 +76,7 @@ describe("Redemption integration", () => {
           couponId: "coupon1",
           userId: "customer1",
           orderId: "ORDER-001",
+          orderAmount: 100,
           status: "APPLIED",
         },
         coupon: {
@@ -92,6 +95,7 @@ describe("Redemption integration", () => {
         .send({
           code: "SAVE20",
           orderId: "ORDER-001",
+          orderAmount: 100,
         });
 
       expect(res.status).toBe(201);
@@ -102,7 +106,8 @@ describe("Redemption integration", () => {
       expect(redemptionService.redeemCoupon).toHaveBeenCalledWith(
         "customer1",
         "SAVE20",
-        "ORDER-001"
+        "ORDER-001",
+        100
       );
     });
   });

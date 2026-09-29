@@ -34,7 +34,21 @@ const resolveDuplicateRedemption = async (coupon, userId, orderId) => {
   });
 };
 
-export const redeemCoupon = async (userId, code, orderId) => {
+const roundCurrency = (amount) => Math.round((amount + Number.EPSILON) * 100) / 100;
+
+const calculateDiscount = (coupon, orderAmount) => {
+  const rawDiscount = coupon.discountType === "PERCENT"
+    ? (orderAmount * coupon.discountValue) / 100
+    : coupon.discountValue;
+  const discountAmount = roundCurrency(Math.min(rawDiscount, orderAmount));
+
+  return {
+    discountAmount,
+    finalAmount: roundCurrency(orderAmount - discountAmount),
+  };
+};
+
+export const redeemCoupon = async (userId, code, orderId, orderAmount) => {
   // 1. Find coupon
   const coupon = await Coupon.findOne({
     code: code.toUpperCase(),
@@ -54,6 +68,8 @@ export const redeemCoupon = async (userId, code, orderId) => {
   if (now > coupon.expiresAt) {
     throw new AppError("Coupon has expired", 400);
   }
+
+  const amounts = calculateDiscount(coupon, orderAmount);
 
   const session = await mongoose.startSession();
 
@@ -122,6 +138,8 @@ export const redeemCoupon = async (userId, code, orderId) => {
             couponId: coupon._id,
             userId,
             orderId,
+            orderAmount,
+            ...amounts,
             status: "APPLIED",
           },
         ],
